@@ -1,0 +1,24 @@
+body {
+	background-color: #222;
+	color: #eee;
+}
+
+.controls {
+	display: none;
+}
+
+img {
+	max-width: 100%;
+}
+
+pre .keyword {
+	color: blueviolet;
+}
+
+#slide-17 p:last-child {
+	line-height: 1;
+}
+
+#slide-17 a {
+	font-size: 0.9em;
+}

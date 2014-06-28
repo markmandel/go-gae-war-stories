@@ -1,0 +1,876 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>War Stories with Google App Engine And Go</title>
+  <style type="text/css">
+    body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #222;
+  background-color: #f7f7f7;
+  font-size: 100%;
+}
+
+.slide {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0; right: 0;
+}
+
+.slide-content {
+  width: 800px;
+  height: 600px;
+  overflow: hidden;
+  margin: 80px auto 0 auto;
+  padding: 30px;
+
+  font-weight: 200;
+  font-size: 200%;
+  line-height: 1.375;
+}
+
+.controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+}
+
+.arrow {
+  width: 0; height: 0;
+  border: 30px solid #333;
+  float: left;
+  margin-right: 30px;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.prev {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+
+  border-left-width: 0;
+  border-right-width: 50px;
+}
+
+.next {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+
+  border-left-width: 50px;
+  border-right-width: 0;
+}
+
+.prev:hover {
+  border-right-color: #888;
+  cursor: pointer;
+}
+
+.next:hover {
+  border-left-color: #888;
+  cursor: pointer;
+}
+
+h1 {
+  font-size: 300%;
+  line-height: 1.2;
+  text-align: center;
+  margin: 170px 0 0;
+}
+
+h2 {
+  font-size: 100%;
+  line-height: 1.2;
+  margin: 5px 0;
+  text-align: center;
+  font-weight: 200;
+}
+
+h3 {
+  font-size: 140%;
+  line-height: 1.2;
+  border-bottom: 1px solid #aaa;
+  margin: 0;
+  padding-bottom: 15px;
+}
+
+ul {
+  padding: 20px 0 0 60px;
+  font-weight: 200;
+  line-height: 1.375;
+}
+
+.author h1 {
+  font-size: 170%;
+  font-weight: 200;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.author h3 {
+  font-weight: 100;
+  text-align: center;
+  font-size: 95%;
+  border: none;
+}
+
+a {
+  text-decoration: none;
+  color: #44a4dd;
+}
+
+a:hover {
+  color: #66b5ff;
+}
+
+pre {
+  font-size: 60%;
+  line-height: 1.3;
+}
+
+.progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 3px;
+  background-color: #b4b4b4;
+
+  -webkit-transition: width 0.05s ease-out;
+  -moz-transition: width 0.05s ease-out;
+  -o-transition: width 0.05s ease-out;
+  transition: width 0.05s ease-out;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 850px) {
+
+  body {
+    font-size: 70%;
+  }
+
+  .slide-content {
+    width: auto;
+  }
+
+  img {
+    width: 100%;
+  }
+
+  h1 {
+    margin-top: 120px;
+  }
+
+  .prev, .prev:hover {
+    border-right-color: rgba(135, 135, 135, 0.5);
+  }
+
+  .next, .next:hover {
+    border-left-color: rgba(135, 135, 135, 0.5);
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 50%;
+    overflow: hidden;
+  }
+
+  .slide-content {
+    padding: 10px;
+    margin-top: 10px;
+    height: 340px;
+  }
+
+  h1 {
+    margin-top: 50px;
+  }
+
+  ul {
+    padding-left: 25px;
+  }
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+  }
+
+  @page {
+    size: letter;
+  }
+
+  .hidden {
+    display: inline;
+  }
+
+  html {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  body {
+    margin: 0 auto !important;
+    border: 0;
+    padding: 0;
+    float: none !important;
+    overflow: visible;
+    background: none !important;
+    font-size: 52%;
+  }
+
+  .progress, .controls {
+    display: none;
+  }
+
+  .slide {
+    position: static;
+  }
+
+  .slide-content {
+    border: 1px solid #222;
+    margin-top: 0;
+    margin-bottom: 40px;
+    height: 3.5in;
+    overflow: visible;
+  }
+
+  .slide:nth-child(even) {
+    /* 2 slides per page */
+    page-break-before: always;
+  }
+}
+
+/*
+github.com style (c) Vasily Polovnyov <vast@whiteants.net>
+*/
+
+code, pre {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  overflow: auto;
+  padding: 6px 10px;
+}
+
+code {
+  padding: 0 5px;
+}
+
+pre>code {
+  margin: 0; padding: 0;
+  border: none;
+  background: transparent;
+}
+
+pre .comment,
+pre .template_comment,
+pre .diff .header,
+pre .javadoc {
+  color: #998;
+  font-style: italic
+}
+
+pre .keyword,
+pre .css .rule .keyword,
+pre .winutils,
+pre .javascript .title,
+pre .nginx .title,
+pre .subst,
+pre .request,
+pre .status {
+  color: #333;
+  font-weight: bold
+}
+
+pre .number,
+pre .hexcolor,
+pre .ruby .constant {
+  color: #099;
+}
+
+pre .string,
+pre .tag .value,
+pre .phpdoc,
+pre .tex .formula {
+  color: #d14
+}
+
+pre .title,
+pre .id {
+  color: #900;
+  font-weight: bold
+}
+
+pre .javascript .title,
+pre .lisp .title,
+pre .clojure .title,
+pre .subst {
+  font-weight: normal
+}
+
+pre .class .title,
+pre .haskell .type,
+pre .vhdl .literal,
+pre .tex .command {
+  color: #458;
+  font-weight: bold
+}
+
+pre .tag,
+pre .tag .title,
+pre .rules .property,
+pre .django .tag .keyword {
+  color: #000080;
+  font-weight: normal
+}
+
+pre .attribute,
+pre .variable,
+pre .lisp .body {
+  color: #008080
+}
+
+pre .regexp {
+  color: #009926
+}
+
+pre .class {
+  color: #458;
+  font-weight: bold
+}
+
+pre .symbol,
+pre .ruby .symbol .string,
+pre .lisp .keyword,
+pre .tex .special,
+pre .prompt {
+  color: #990073
+}
+
+pre .built_in,
+pre .lisp .title,
+pre .clojure .built_in {
+  color: #0086b3
+}
+
+pre .preprocessor,
+pre .pi,
+pre .doctype,
+pre .shebang,
+pre .cdata {
+  color: #999;
+  font-weight: bold
+}
+
+pre .deletion {
+  background: #fdd
+}
+
+pre .addition {
+  background: #dfd
+}
+
+pre .diff .change {
+  background: #0086b3
+}
+
+pre .chunk {
+  color: #aaa
+}
+
+body {
+	background-color: #222;
+	color: #eee;
+}
+
+.controls {
+	display: none;
+}
+
+img {
+	max-width: 100%;
+}
+
+pre .keyword {
+	color: blueviolet;
+}
+
+#slide-17 p:last-child {
+	line-height: 1;
+}
+
+#slide-17 a {
+	font-size: 0.9em;
+}
+
+  </style>
+</head>
+<body>
+    <div class="progress">
+    <div class="progress-bar"></div>
+  </div>
+
+  <div class="slide" id="slide-1">
+    <section class="slide-content"><h1 id="war-stories-with-google-app-engine-and-go">War Stories with Google App Engine And Go</h1>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-2">
+    <section class="slide-content"><h1 id="go-gae-is-experimental">GO + GAE IS EXPERIMENTAL</h1>
+<h2 id="don-t-forget-this-">Don&#39;t forget this!</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-3">
+    <section class="slide-content"><h3 id="support">Support</h3>
+<p><img src="images/support.png" alt="Support Packages"></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-4">
+    <section class="slide-content"><h3 id="google-appengine-go-google-group">Google Appengine Go Google Group</h3>
+<p><a href="https://groups.google.com/forum/#!forum/google-appengine-go"><a href="https://groups.google.com/forum/#!forum/google-appengine-go">https://groups.google.com/forum/#!forum/google-appengine-go</a></a></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-5">
+    <section class="slide-content"><h3 id="go-workspace">Go Workspace</h3>
+<pre><code class="lang-bash">source ./env.sh</code></pre>
+<pre><code class="lang-bash">PWD=`pwd`
+APPENGINE=<span class="variable">$PWD</span>/go_appengine
+VENDOR=<span class="variable">$PWD</span>/.vendor
+
+export GOROOT=<span class="variable">$APPENGINE</span>/goroot
+export GOPATH=<span class="variable">$VENDOR</span>:<span class="variable">$PWD</span>
+export PATH=<span class="variable">$APPENGINE</span>:<span class="variable">$PWD</span>/bin:<span class="variable">$VENDOR</span>/bin:<span class="variable">$PATH</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-6">
+    <section class="slide-content"><h3 id="package-management">Package Management</h3>
+<ul>
+<li>Used a Forked Version of GPM (<a href="https://github.com/markmandel/gpm"><a href="https://github.com/markmandel/gpm">https://github.com/markmandel/gpm</a></a>)</li>
+</ul>
+<pre><code class="lang-bash">deps:
+    gpm install -g <span class="string">"$(CURDIR)/$(APPENGINE)/goapp"</span> -u 0
+    <span class="comment"># build binaries as necessary.</span>
+    goapp install github.com/smartystreets/goconvey
+    goapp install github.com/clipperhouse/gen</code></pre>
+<pre><code class="lang-bash">clean-deps:
+    rm -rf $(VENDOR_GOPATH)
+    mkdir $(VENDOR_GOPATH)
+    rm -rf pkg</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-7">
+    <section class="slide-content"><h1 id="datastore">Datastore</h1>
+<h2 id="it-s-eventually-consistent">IT&#39;S EVENTUALLY CONSISTENT</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-8">
+    <section class="slide-content"><h3 id="bulk-download-upload">Bulk Download/Upload</h3>
+<ul>
+<li>Enable the Remote API</li>
+<li>Local is eventually consistent too </li>
+<li>For big data changes, restart local dev to make sure all data is there</li>
+<li>Batch of ~ 50 for large upload/downloads, both local and remote.</li>
+</ul>
+<pre><code class="lang-bash">download-local-data:
+    mkdir -p ./data
+    appcfg.py download_data --url=$(LOCAL_REMOTE) --filename=./data/foo.data --kind=Foo --batch_size=50</code></pre>
+<pre><code class="lang-bash">upload-prod-data:
+    appcfg.py upload_data --url=$(PROD_REMOTE) --filename=./data/foo.data --kind=Foo --batch_size=50</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-9">
+    <section class="slide-content"><h1 id="the-context">The Context</h1>
+<pre><code class="lang-go"><span class="keyword">func</span> MyHandler(w http.ResponseWriter, r *http.Request) {
+   ctx := appengine.NewContext(r)
+   <span class="comment">//do other things</span>
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-10">
+    <section class="slide-content"><h3 id="aetest-appengine-test-package">AETest - AppEngine Test Package</h3>
+<ul>
+<li>Can&#39;t test:<ul>
+<li>Login/Logout (?)</li>
+<li>TaskQueue</li>
+</ul>
+</li>
+<li>Alternative: <a href="https://github.com/mzimmerman/appenginetesting"><a href="https://github.com/mzimmerman/appenginetesting">https://github.com/mzimmerman/appenginetesting</a></a></li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-11">
+    <section class="slide-content"><h3 id="convey-bdd-style-testing">Convey - BDD Style Testing</h3>
+<ul>
+<li>Has a <code>-gobin</code> option</li>
+<li>Nice browser display</li>
+<li>Integrated coverage report</li>
+<li>Works with <code>goapp test</code></li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-12">
+    <section class="slide-content"><h3 id="convey-bdd-style-testing">Convey - BDD Style Testing</h3>
+<pre><code class="lang-go"><span class="keyword">func</span> TestPutFoo(t *testing.T) {
+    ctx := test.CreateContext()
+    <span class="keyword">defer</span> ctx.Close()
+
+    Convey(<span class="string">"When you have a Foo"</span>, t, <span class="keyword">func</span>() {
+        f := NewFoo()
+        So(f.Name, ShouldEqual, <span class="string">"Bar"</span>)
+
+        Convey(<span class="string">"you can store it"</span>, <span class="keyword">func</span>() {
+            key, err := PutFoo(ctx, &amp;f)
+            So(err, ShouldBeNil)
+
+            Convey(<span class="string">"and retrieved it"</span>, <span class="keyword">func</span>() {
+                reget := &amp;Foo{Id: f.Id}
+                err := datastore.Get(ctx, key, reget)
+
+                So(err, ShouldBeNil)
+                So(reget, ShouldResemble, &amp;f)
+            })
+        })
+    })
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-13">
+    <section class="slide-content"><h3 id="unit-tests-eventual-consistency">Unit Tests + Eventual Consistency</h3>
+<p>Only works in local development</p>
+<pre><code class="lang-go">record := Bar{<span class="string">"foo"</span>}
+key, err := datastore.Put(ctx, key, &amp;record)
+datastore.Get(ctx, key, &amp;Bar{})</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-14">
+    <section class="slide-content"><h3 id="tests-in-parrallel">Tests in Parrallel</h3>
+<pre><code class="lang-go"><span class="keyword">func</span> CreateContext() aetest.Context {
+    opts := aetest.Options{AppID: fmt.Sprintf(<span class="string">"unit-test-%v"</span>, os.Getpid())}
+    ctx, err := aetest.NewContext(&amp;opts)
+
+    <span class="keyword">if</span> err != <span class="constant">nil</span> {
+        <span class="built_in">panic</span>(err.Error())
+    }
+
+    <span class="keyword">return</span> ctx
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-15">
+    <section class="slide-content"><h3 id="testing-http-routes">Testing HTTP Routes</h3>
+<p>Production:</p>
+<pre><code class="lang-go">ctx := appengine.NewContext(r)</code></pre>
+<p>Test:</p>
+<pre><code class="lang-go">ctx := aetest.NewContext(<span class="constant">nil</span>)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-16">
+    <section class="slide-content"><h3 id="testing-http-routes">Testing HTTP Routes</h3>
+<pre><code class="lang-go"><span class="keyword">func</span> MyHandler(w http.ResponseWriter, r *http.Request) {
+   ctx := appengine.NewContext(r)
+   <span class="comment">//do other things</span>
+}
+
+<span class="keyword">func</span> TestHandlet(t *testingT) {
+   res := httptest.NewRecorder()
+   req := http.NewRequest(<span class="string">"GET"</span>, <span class="string">"/"</span>, <span class="constant">nil</span>)
+
+   MyHandler(res, req)    
+}</code></pre>
+<p><strong> PANIC!!! </strong>
+appengine: NewContext passed an unknown http.Request in api_dev.go</p>
+</section>
+  </div>
+  <div class="slide hidden -" id="slide-17">
+    <section class="slide-content"><h3 id="testing-http-routes">Testing HTTP Routes</h3>
+<p>Make all Handlers accept an <code>appengine.Context</code></p>
+<pre><code class="lang-go"><span class="keyword">func</span> MyHandler(ctx appengine.Context, w http.ResponseWriter, r *http.Request) {
+   <span class="comment">//do things</span>
+}</code></pre>
+<pre><code class="lang-go"><span class="keyword">func</span> (f ContextHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    c := appengine.NewContext(r)
+    f.Real(c, w, r)
+}</code></pre>
+<pre><code class="lang-go"><span class="keyword">func</span> ContextHanderToHttpHandler(f ContextHandlerFunc) HandlerFunc {
+    <span class="keyword">return</span> <span class="keyword">func</span>(w http.ResponseWriter, r *http.Request) {
+        ctx := appengine.NewContext(r)
+        f(ctx, w, r)
+    }
+}</code></pre>
+<p><a href="http://www.compoundtheory.com/testing-go-http-handlers-in-google-app-engine-with-mux-and-higher-order-functions/"><a href="http://www.compoundtheory.com/testing-go-http-handlers-in-google-app-engine-with-mux-and-higher-order-functions/">http://www.compoundtheory.com/testing-go-http-handlers-in-google-app-engine-with-mux-and-higher-order-functions/</a></a></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-18">
+    <section class="slide-content"><h3 id="controlling-variance">Controlling Variance</h3>
+<pre><code class="lang-go"><span class="keyword">func</span> myHandler(w http.ResponseWriter, r *http.Request) {
+    c := appengine.NewContext(r)
+    <span class="comment">// ...</span>
+    <span class="comment">// regular request handling</span>
+    <span class="comment">// ...</span>
+
+    <span class="comment">// Save to memcache, but only wait up to 3ms.</span>
+    done := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="typename">bool</span>,<span class="number"> 1</span>) <span class="comment">// NB: buffered</span>
+    <span class="keyword">go</span> <span class="keyword">func</span>() {
+        memcache.Set(c, &amp;memcache.Item{
+            Key:   key,
+            Value: data,
+        })
+        done &lt;- <span class="constant">true</span>
+    }()
+    <span class="keyword">select</span> {
+    <span class="keyword">case</span> &lt;-done:
+    <span class="keyword">case</span> &lt;-time.After<span class="number">(3</span> * time.Millisecond):
+    }
+}</code></pre>
+<p>High Performance Apps with Go on App Engine 
+<a href="http://www.youtube.com/watch?v=fc25ihfXhbg"><a href="http://www.youtube.com/watch?v=fc25ihfXhbg">http://www.youtube.com/watch?v=fc25ihfXhbg</a></a></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-19">
+    <section class="slide-content"><h3 id="memecache-all-the-things">Memecache All The Things</h3>
+<h4 id="goon">Goon</h4>
+<p>An autocaching interface to the app engine datastore for Go. Designed to be similar to the python NDB package.<br/>
+<a href="https://github.com/mjibson/goon"><a href="https://github.com/mjibson/goon">https://github.com/mjibson/goon</a></a></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-20">
+    <section class="slide-content"><h3 id="editing-existing-data">Editing Existing Data</h3>
+<h4 id="do-it-this-way-or-you-will-hate-life-itself">Do it this way or you will hate life itself</h4>
+<pre><code class="lang-go"><span class="keyword">func</span> migrate(w http.ResponseWriter, r *http.Request) {
+    ctx := appengine.NewContext(r)
+
+    q := datastore.NewQuery(<span class="string">"Foo"</span>)
+    cursor, err := q.Run(ctx).Cursor()
+
+    f := delay.Func(<span class="string">"process"</span>, process)
+    f.Call(ctx, cursor.String())
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden -" id="slide-21">
+    <section class="slide-content"><pre><code class="lang-go"><span class="keyword">func</span> process(ctx appengine.Context, c <span class="typename">string</span>) error {
+    g := goon.FromContext(ctx)
+    q := datastore.NewQuery(<span class="string">"Foo"</span>)
+    cursor, err := datastore.DecodeCursor(c)
+    keepGoing := <span class="constant">true</span>
+    iter := g.Run(q.Start(cursor))
+    batch := []Foo{}
+
+    <span class="keyword">for</span> i :=<span class="number"> 0</span>; i &lt; BATCH_SIZE; i++ {
+        z := Foo{}
+
+        <span class="keyword">if</span> _, err := iter.Next(&amp;z); err != <span class="constant">nil</span> {
+            <span class="keyword">if</span> err == datastore.Done {
+                keepGoing = <span class="constant">false</span>;  <span class="keyword">break</span>
+            }
+        }
+
+        z.Name == <span class="string">"John"</span>
+        batch = <span class="built_in">append</span>(batch, z)
+    }
+
+    g.PutMulti(batch)
+
+    <span class="keyword">if</span> keepGoing {
+        f := delay.Func(<span class="string">"process"</span>, process)
+        f.Call(ctx, iter.Cursor().String())
+    } 
+
+    <span class="keyword">return</span> <span class="constant">nil</span>
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden  " id="slide-22">
+    <section class="slide-content"><h3 id="learn-more">Learn More</h3>
+<ul>
+<li><a href="https://developers.google.com/appengine/docs/go/">https://developers.google.com/appengine/docs/go/</a></li>
+<li>#appengine on Freenode</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-23">
+    <section class="slide-content"><div class="author">
+  <h1 class="name">Mark Mandel</h1>
+    <h3 class="twitter">
+      <a href="http://twitter.com/@Neurotic">@Neurotic</a>
+    </h3>
+    <h3 class="url">
+      <a href="http://www.compoundtheory.com">http://www.compoundtheory.com</a>
+    </h3>
+    <h3 class="email">
+      <a href="mailto:mark@compoundtheory.com">mark@compoundtheory.com</a>
+    </h3>
+</div>
+</section>
+  </div>
+
+  <div class="controls">
+    <div class="arrow prev"></div>
+    <div class="arrow next"></div>
+  </div>
+
+
+  <script type="text/javascript">
+    /**
+ * Returns the current page number of the presentation.
+ */
+function currentPosition() {
+  return parseInt(document.querySelector('.slide:not(.hidden)').id.slice(6));
+}
+
+
+/**
+ * Navigates forward n pages
+ * If n is negative, we will navigate in reverse
+ */
+function navigate(n) {
+  var position = currentPosition();
+  var numSlides = document.getElementsByClassName('slide').length;
+
+  /* Positions are 1-indexed, so we need to add and subtract 1 */
+  var nextPosition = (position - 1 + n) % numSlides + 1;
+
+  /* Normalize nextPosition in-case of a negative modulo result */
+  nextPosition = (nextPosition - 1 + numSlides) % numSlides + 1;
+
+  document.getElementById('slide-' + position).classList.add('hidden');
+  document.getElementById('slide-' + nextPosition).classList.remove('hidden');
+
+  updateProgress();
+  updateURL();
+  updateTabIndex();
+}
+
+
+/**
+ * Updates the current URL to include a hashtag of the current page number.
+ */
+function updateURL() {
+  window.history.replaceState({} , null, '#' + currentPosition());
+}
+
+
+/**
+ * Sets the progress indicator.
+ */
+function updateProgress() {
+  var progressBar = document.querySelector('.progress-bar');
+
+  if (progressBar !== null) {
+    var numSlides = document.getElementsByClassName('slide').length;
+    var position = currentPosition() - 1;
+    var percent = (numSlides === 1) ? 100 : 100 * position / (numSlides - 1);
+    progressBar.style.width = percent.toString() + '%';
+  }
+}
+
+
+/**
+ * Removes tabindex property from all links on the current slide, sets
+ * tabindex = -1 for all links on other slides. Prevents slides from appearing
+ * out of control.
+ */
+function updateTabIndex() {
+  var allLinks = document.querySelectorAll('.slide a');
+  var position = currentPosition();
+  var currentPageLinks = document.getElementById('slide-' + position).querySelectorAll('a');
+  var i;
+
+  for (i = 0; i < allLinks.length; i++) {
+    allLinks[i].setAttribute('tabindex', -1);
+  }
+
+  for (i = 0; i < currentPageLinks.length; i++) {
+    currentPageLinks[i].removeAttribute('tabindex');
+  }
+}
+
+/**
+ * Determines whether or not we are currently in full screen mode
+ */
+function isFullScreen() {
+  return document.fullscreenElement ||
+         document.mozFullScreenElement ||
+         document.webkitFullscreenElement ||
+         document.msFullscreenElement;
+}
+
+/**
+ * Toggle fullScreen mode on document element.
+ * Works on chrome (>= 15), firefox (>= 9), ie (>= 11), opera(>= 12.1), safari (>= 5).
+ */
+function toggleFullScreen() {
+  /* Convenient renames */
+  var docElem = document.documentElement;
+  var doc = document;
+
+  docElem.requestFullscreen =
+      docElem.requestFullscreen ||
+      docElem.msRequestFullscreen ||
+      docElem.mozRequestFullScreen ||
+      docElem.webkitRequestFullscreen.bind(docElem, Element.ALLOW_KEYBOARD_INPUT);
+
+  doc.exitFullscreen =
+      doc.exitFullscreen ||
+      doc.msExitFullscreen ||
+      doc.mozCancelFullScreen ||
+      doc.webkitExitFullscreen;
+
+  isFullScreen() ? doc.exitFullscreen() : docElem.requestFullscreen();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Update the tabindex to prevent weird slide transitioning
+  updateTabIndex();
+
+  // If the location hash specifies a page number, go to it.
+  var page = window.location.hash.slice(1);
+  if (page) {
+    navigate(parseInt(page) - 1);
+  }
+
+  document.onkeydown = function (e) {
+    var kc = e.keyCode;
+
+    // left, down, H, J, backspace, PgUp - BACK
+    // up, right, K, L, space, PgDn - FORWARD
+    // enter - FULLSCREEN
+    if (kc === 37 || kc === 40 || kc === 8 || kc === 72 || kc === 74 || kc === 33) {
+      navigate(-1);
+    } else if (kc === 38 || kc === 39 || kc === 32 || kc === 75 || kc === 76 || kc === 34) {
+      navigate(1);
+    } else if (kc === 13) {
+      toggleFullScreen();
+    }
+  };
+
+  if (document.querySelector('.next') && document.querySelector('.prev')) {
+    document.querySelector('.next').onclick = function (e) {
+      e.preventDefault();
+      navigate(1);
+    };
+
+    document.querySelector('.prev').onclick = function (e) {
+      e.preventDefault();
+      navigate(-1);
+    };
+  }
+});
+
+
+  </script>
+</body>
+</html>
