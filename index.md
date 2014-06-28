@@ -289,5 +289,6 @@ func process(ctx appengine.Context, c string) error {
 ```
 -- 
 ### Learn More
+- [https://github.com/markmandel/go-gae-war-stories](https://github.com/markmandel/go-gae-war-stories)
 - https://developers.google.com/appengine/docs/go/
 - \#appengine on Freenode
